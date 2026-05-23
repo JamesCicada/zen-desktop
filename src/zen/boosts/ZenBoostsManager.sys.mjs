@@ -312,6 +312,7 @@ class nsZenBoostsManager {
 
     Services.obs.notifyObservers(null, "zen-boosts-active-change", { id });
 
+    this.#writeToDisk(this.registeredDomains);
     this.#stylesManager.invalidateStyleForDomain(domain);
     this.notify();
   }
@@ -327,23 +328,23 @@ class nsZenBoostsManager {
 
     if (domainEntry) {
       if (domainEntry.boostEntries.has(id)) {
+        let unloadStyles = false;
         if (domainEntry.activeBoostId === id) {
           domainEntry.activeBoostId = null;
           Services.obs.notifyObservers(null, "zen-boosts-active-change", {
             id: null,
           });
-
-          this.#stylesManager.invalidateStyleForDomain(domain);
-          this.notify(true);
+          unloadStyles = true;
         } else {
           domainEntry.activeBoostId = id;
           Services.obs.notifyObservers(null, "zen-boosts-active-change", {
             id,
           });
-
-          this.#stylesManager.invalidateStyleForDomain(domain);
-          this.notify();
         }
+
+        this.#writeToDisk(this.registeredDomains);
+        this.#stylesManager.invalidateStyleForDomain(domain);
+        this.notify(unloadStyles);
       }
     }
   }
