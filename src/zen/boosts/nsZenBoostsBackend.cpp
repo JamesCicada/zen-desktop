@@ -386,8 +386,9 @@ inline static nscolor zenInvertColorChannel(nscolor aColor) {
  * not touch (devtools highlighters, screenshots, the boosts overlays
  * themselves, and other native-anonymous UI such as scrollbars). A null frame
  * gives no document to anchor the boost on, so it is treated the same way.
- * CSS generated content (::before/::after/::marker/::backdrop) is
- * native-anonymous too but is author content, so it is not exempt.
+ * Author-facing content that happens to be native-anonymous is not exempt:
+ * UA-widget form-control internals (including the text the user types into an
+ * input), and pseudo-elements such as ::before/::after/::marker/::placeholder.
  */
 ZEN_HOT_FUNCTION
 inline static bool IsBoostExemptFrame(const nsIFrame* aFrame) {
@@ -398,21 +399,17 @@ inline static bool IsBoostExemptFrame(const nsIFrame* aFrame) {
   if (!content || !content->IsInNativeAnonymousSubtree()) {
     return false;
   }
-  if (const nsIContent* root =
-          content->GetClosestNativeAnonymousSubtreeRoot()) {
-    if (root->IsElement()) {
-      switch (root->AsElement()->GetPseudoElementType()) {
-        case mozilla::PseudoStyleType::Before:
-        case mozilla::PseudoStyleType::After:
-        case mozilla::PseudoStyleType::Marker:
-        case mozilla::PseudoStyleType::Backdrop:
-          return false;
-        default:
-          break;
-      }
-    }
+  // Form-control internals (and media controls) live in UA-widget shadow
+  // trees; the text typed into an input is author content and should be
+  // boosted. Classic native-anonymous UI (scrollbars, devtools) has no
+  // containing shadow and falls through to the pseudo-element check below.
+  if (content->GetContainingShadow()) {
+    return false;
   }
-  return true;
+  const nsIContent* root = content->GetClosestNativeAnonymousSubtreeRoot();
+  return !root || !root->IsElement() ||
+         !mozilla::PseudoStyle::IsPseudoElement(
+             root->AsElement()->GetPseudoElementType());
 }
 
 /**
@@ -427,6 +424,15 @@ inline static void GetZenBoostsDataForFrame(const nsIFrame* aFrame,
                                             bool* aIsInverted) {
   nsPresContext* presContext = aFrame->PresContext();
   if (!presContext) {
+    return;
+  }
+  // SVG images render in their own document with no BrowsingContext; the host
+  // propagates its boost onto the image document's PresContext instead.
+  if (presContext->HasZenBoostsOverride()) {
+    *aData = presContext->ZenBoostsOverrideAccent();
+    *aComplementaryRotation =
+        presContext->ZenBoostsOverrideComplementaryRotation();
+    *aIsInverted = presContext->ZenBoostsOverrideInverted();
     return;
   }
   const mozilla::dom::BrowsingContext* browsingContext = nullptr;
