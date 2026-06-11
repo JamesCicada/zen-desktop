@@ -10,7 +10,7 @@ const TEST_PATH = getRootDirectory(gTestPath).replace(
 
 const TEST_URL = TEST_PATH + "readerModeArticle.html";
 
-add_task(async function test_TODO() {
+add_task(async function test_readerMode_bc_reuse() {
   await BrowserTestUtils.withNewTab(
     "data:text/html,<p>Opener",
     async browser => {
