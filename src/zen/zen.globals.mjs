@@ -277,8 +277,6 @@ export default [
   "BrowserHandler",
   "Marionette",
   "RemoteAgent",
-  "Marionette",
-  "RemoteAgent",
   "RTL_UI",
   "gLocaleChangeObserver",
   "gBrandBundle",
