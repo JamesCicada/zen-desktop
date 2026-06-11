@@ -153,7 +153,6 @@ class nsZenPinnedTabManager extends nsZenDOMOperatedFeature {
         tab._zenClickEventListener = this._zenClickEventListener;
         tab.addEventListener("click", tab._zenClickEventListener);
         break;
-      // [Fall through]
       case "TabUnpinned":
         if (tab._zenClickEventListener) {
           tab.removeEventListener("click", tab._zenClickEventListener);
