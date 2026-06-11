@@ -457,16 +457,17 @@ let config = [
 
 // The various places we get our globals from use true/false rather than
 // the strings required by ESLint, so translate those here.
-config.map((entry) => {
+config = config.map((entry) => {
   if (entry.languageOptions?.globals) {
     let newGlobals = {};
     for (let [key, value] of Object.entries(entry.languageOptions.globals)) {
-      if (typeof entry.languageOptions.globals[key] == "boolean") {
+      if (typeof value == "boolean") {
         newGlobals[key] = value ? "writable" : "readonly";
       } else {
         newGlobals[key] = value;
       }
     }
+    entry.languageOptions.globals = newGlobals;
   }
   return entry;
 });
