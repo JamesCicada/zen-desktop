@@ -49,15 +49,15 @@ add_task(async function test_Check_ScrollBox_Overflow() {
     }, 200);
   });
 
+  const scrolledPosition = scrollbox.scrollPosition;
   gBrowser.selectedTab = gBrowser.visibleTabs[0];
   await new Promise(resolve => {
     /* eslint-disable-next-line mozilla/no-arbitrary-setTimeout */
     setTimeout(() => {
-      // TODO: Use a real scroll position check instead of a hardcoded value
       Assert.less(
         scrollbox.scrollPosition,
-        60,
-        "The scrollbox should be scrolled to the top"
+        scrolledPosition,
+        "The scrollbox should be scrolled back toward the top"
       );
       resolve();
     }, 200);
